@@ -1,32 +1,34 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
-
-const app = express();
-
-// Security Middleware
-app.use(helmet());
-
+// 1. Initialize CORS before anything else
 const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:3030',
+    'https://habitforge-track.vercel.app',
     process.env.FRONTEND_URL
 ].filter(Boolean);
 
 app.use(cors({
     origin: (origin, callback) => {
-        // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+        const isAllowed = allowedOrigins.some(allowed => allowed === '*' || allowed === origin);
+        if (isAllowed) {
             callback(null, true);
         } else {
+            console.error(`Origin ${origin} not allowed by CORS`);
             callback(new Error('Not allowed by CORS'));
         }
     },
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Handle preflight for all routes
+app.options('*', cors());
+
+// 2. Security Middleware
+app.use(helmet());
+
+// CORS moved to top
 
 // Rate Limiting
 const limiter = rateLimit({
