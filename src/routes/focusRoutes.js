@@ -8,7 +8,7 @@ const router = express.Router();
 router.use(authenticateUser);
 
 const startSchema = z.object({
-    habit_id: z.string().uuid().optional(),
+    habit_id: z.string().uuid().optional().nullable(),
     duration_minutes: z.number().min(1).max(120),
     tick_enabled: z.boolean().default(true),
     volume: z.number().min(0).max(1).default(0.5)
