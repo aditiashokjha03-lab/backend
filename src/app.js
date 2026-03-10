@@ -1,25 +1,41 @@
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
+
+const app = express();
+
 // 1. Initialize CORS before anything else
 const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:3030',
     'https://habitforge-track.vercel.app',
+    'https://habitforge-track.vercel.app/',
     process.env.FRONTEND_URL
-].filter(Boolean);
+].filter(Boolean).map(url => url.trim());
 
 app.use(cors({
     origin: (origin, callback) => {
         if (!origin) return callback(null, true);
-        const isAllowed = allowedOrigins.some(allowed => allowed === '*' || allowed === origin);
+
+        const isAllowed = allowedOrigins.some(allowed => {
+            if (allowed === '*') return true;
+            const match = allowed.replace(/\/$/, '') === origin.replace(/\/$/, '');
+            if (match) console.log(`CORS Match: [${origin}] matches [${allowed}]`);
+            return match;
+        });
+
         if (isAllowed) {
             callback(null, true);
         } else {
-            console.error(`Origin ${origin} not allowed by CORS`);
+            console.error(`CORS Reject: Origin [${origin}] not in [${allowedOrigins.join(', ')}]`);
             callback(new Error('Not allowed by CORS'));
         }
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
 
 // Handle preflight for all routes
