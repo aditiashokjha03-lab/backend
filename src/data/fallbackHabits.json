@@ -1,0 +1,34 @@
+{
+    "Fitness": [
+        {
+            "name": "10-Minute Morning Stretch",
+            "description": "Do a full body stretching routine immediately after waking up.",
+            "frequency": "daily",
+            "difficulty": "easy",
+            "why": "Stretching increases blood flow and prepares your body for movement throughout the day."
+        },
+        {
+            "name": "Progressive Overload Tracking",
+            "description": "Log weights and reps for every compound lift to track progression.",
+            "frequency": "3x_week",
+            "difficulty": "medium",
+            "why": "Tracking is the only reliable way to ensure you are continually challenging your muscles to grow."
+        }
+    ],
+    "Productivity": [
+        {
+            "name": "Night Before Planning",
+            "description": "Write down the 3 most important tasks for the next day before going to bed.",
+            "frequency": "daily",
+            "difficulty": "easy",
+            "why": "Reduces morning decision fatigue and lets you start the day with clear priorities."
+        },
+        {
+            "name": "Deep Work Block",
+            "description": "Work for 90 minutes on your most important project with absolutely zero distractions or notifications.",
+            "frequency": "weekdays",
+            "difficulty": "hard",
+            "why": "Deep work is where true value is created, but it requires sustained, unbroken concentration."
+        }
+    ]
+}
