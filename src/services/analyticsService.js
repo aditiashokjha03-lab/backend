@@ -7,11 +7,17 @@ const supabase = require('../config/supabase');
 
 async function getSummary(userId) {
     try {
-        const { count: totalHabits } = await supabase
+        const { count: activeHabits } = await supabase
             .from('habits')
             .select('*', { count: 'exact', head: true })
             .eq('user_id', userId)
             .eq('archived', false);
+
+        const { count: totalCheckIns } = await supabase
+            .from('habit_logs')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+            .eq('completed', true);
 
         const { data: profile } = await supabase
             .from('profiles')
@@ -44,7 +50,8 @@ async function getSummary(userId) {
         }
 
         return {
-            total_habits: totalHabits || 0,
+            active_habits: activeHabits || 0,
+            total_check_ins: totalCheckIns || 0,
             completion_rate: completionRate,
             best_streak: bestStreak,
             total_xp: profile?.xp || 0,
@@ -104,11 +111,21 @@ async function getHeatmap(userId, year = new Date().getFullYear()) {
             .lte('log_date', endDate)
             .eq('completed', true);
 
-        // Since heatmap can be many points, we just return the days with activity
-        // The frontend can handle the gaps or we can fill them
         const dayCounts = {};
+
+        // Initialize all days of the year with 0
+        const startOfYear = new Date(year, 0, 1);
+        const endOfYear = new Date(year, 11, 31);
+
+        for (let d = new Date(startOfYear); d <= endOfYear; d.setDate(d.getDate() + 1)) {
+            const dateStr = d.toISOString().split('T')[0];
+            dayCounts[dateStr] = 0;
+        }
+
         logs?.forEach(log => {
-            dayCounts[log.log_date] = (dayCounts[log.log_date] || 0) + 1;
+            if (dayCounts[log.log_date] !== undefined) {
+                dayCounts[log.log_date]++;
+            }
         });
 
         return Object.entries(dayCounts).map(([date, count]) => ({ date, count }));
