@@ -59,4 +59,5 @@ The backend uses **Supabase (PostgreSQL)** with the following core entities:
    ```
 
 ## Deployment Link
-[Not currently deployed - Local Development Only]
+[[Backend Deployment]
+](https://backend-cxl4.onrender.com)
