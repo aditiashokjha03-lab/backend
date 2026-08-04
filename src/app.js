@@ -19,7 +19,7 @@ app.use(cors({
     origin: (origin, callback) => {
         if (!origin) return callback(null, true);
 
-        const isAllowed = allowedOrigins.some(allowed => {
+        const isAllowed = /^http:\/\/localhost:\d+$/.test(origin) || allowedOrigins.some(allowed => {
             if (allowed === '*') return true;
             const match = allowed.replace(/\/$/, '') === origin.replace(/\/$/, '');
             if (match) console.log(`CORS Match: [${origin}] matches [${allowed}]`);
