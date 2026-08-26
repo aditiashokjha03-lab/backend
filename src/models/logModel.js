@@ -39,16 +39,19 @@ const upsertLog = async (userId, habitId, logData) => {
     let xpEarned = 0;
     let newStreak = null;
 
-    // 3. Award XP and update Streaks ONLY IF this is a new completion
+    let shouldUpdateProfile = false;
+    const difficultyMultipliers = {
+        easy: 10,
+        medium: 20,
+        hard: 30,
+        expert: 50
+    };
+    const xpChange = difficultyMultipliers[habit.difficulty.toLowerCase()] || 10;
+
+    // 3. Award or Deduct XP and update Streaks
     if (logData.completed && (!existingLog || !existingLog.completed)) {
-        // XP Calculation based on difficulty
-        const difficultyMultipliers = {
-            easy: 10,
-            medium: 20,
-            hard: 30,
-            expert: 50
-        };
-        xpEarned = difficultyMultipliers[habit.difficulty.toLowerCase()] || 10;
+        xpEarned = xpChange;
+        shouldUpdateProfile = true;
 
         // Streak Tracking
         const todayStr = logData.log_date;
@@ -103,8 +106,14 @@ const upsertLog = async (userId, habitId, logData) => {
                 .single();
             newStreak = insertedStreak;
         }
+    } else if (logData.completed === false && existingLog && existingLog.completed) {
+        // Deduct XP if habit is unchecked
+        xpEarned = -xpChange;
+        shouldUpdateProfile = true;
+    }
 
-        // 4. Update Profile XP & Level
+    // 4. Update Profile XP & Level
+    if (shouldUpdateProfile) {
         const { data: profile } = await supabase
             .from('profiles')
             .select('*')
@@ -115,10 +124,22 @@ const upsertLog = async (userId, habitId, logData) => {
             let newXp = (profile.xp || 0) + xpEarned;
             let newLevel = profile.level || 1;
 
-            // Level up logic: next_level_threshold = current_level * 100
-            while (newXp >= (newLevel * 100)) {
-                newXp -= (newLevel * 100);
-                newLevel += 1;
+            if (xpEarned > 0) {
+                // Level up logic: next_level_threshold = current_level * 100
+                while (newXp >= (newLevel * 100)) {
+                    newXp -= (newLevel * 100);
+                    newLevel += 1;
+                }
+            } else if (xpEarned < 0) {
+                // Level down logic
+                while (newXp < 0 && newLevel > 1) {
+                    newLevel -= 1;
+                    newXp += (newLevel * 100);
+                }
+                if (newXp < 0) {
+                    newXp = 0;
+                    newLevel = 1;
+                }
             }
 
             await supabase

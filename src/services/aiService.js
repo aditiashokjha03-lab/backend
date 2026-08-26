@@ -13,7 +13,7 @@ Return ONLY the JSON array. No markdown fences, no preamble.`;
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-3.6-flash',
             contents: userMsg,
             config: {
                 systemInstruction: systemPrompt,
